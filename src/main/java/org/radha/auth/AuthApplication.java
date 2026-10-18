@@ -4,15 +4,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.service.annotation.GetExchange;
 
@@ -22,14 +20,36 @@ import java.util.Map;
 
 @SpringBootApplication
 public class AuthApplication {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run(AuthApplication.class, args);
     }
 
 }
 
 @Configuration
+@EnableWebSecurity
 class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        return http
+                .formLogin(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults())
+                .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+//                .webAuthn(a -> a.allowedOrigins("http://localhost:8080")
+//                        .rpId("localhost")
+//                        .rpName("localhost") )
+                .oneTimeTokenLogin(httpSecurityOneTimeTokenLoginConfigurer -> httpSecurityOneTimeTokenLoginConfigurer.tokenGenerationSuccessHandler(
+                        (_, response, oneTimeToken) -> {
+                            response.getWriter().println("You got a mail on console");
+                            response.setHeader("Content-Type", "text/html");
+                            var msg = "please got to http://localhost:8080/login/ott?token=" +
+                                    oneTimeToken.getTokenValue();
+                            IO.println(msg);
+                        }
+                ))
+                .build();
+    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -38,19 +58,7 @@ class SecurityConfig {
 
     @Bean
     JdbcUserDetailsManager userDetailsService(DataSource dataSource, PasswordEncoder passwordEncoder) {
-        JdbcUserDetailsManager js = new JdbcUserDetailsManager(dataSource);
-        // first time when you want to creratee users
-//        js.createUser(
-//                User.withUsername("radhe")
-//                        .password(passwordEncoder.encode("radhe"))
-//                        .roles("USER")
-//                        .build());
-//        js.createUser(
-//                User.withUsername("shyam")
-//                        .password(passwordEncoder.encode("radhe"))
-//                        .roles("USER,ADMIN")
-//                        .build());
-        return js;
+        return new JdbcUserDetailsManager(dataSource);
     }
 }
 
