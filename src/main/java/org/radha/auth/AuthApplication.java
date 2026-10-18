@@ -5,13 +5,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.service.annotation.GetExchange;
 
+import javax.sql.DataSource;
 import java.security.Principal;
 import java.util.Map;
 
@@ -32,16 +37,20 @@ class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        return new InMemoryUserDetailsManager(
-                User.withUsername("radhe")
-                        .password(passwordEncoder.encode("radhe"))
-                        .roles("USER")
-                        .build(),
-                User.withUsername("shyam")
-                        .password(passwordEncoder.encode("radhe"))
-                        .roles("USER,ADMIN")
-                        .build());
+    JdbcUserDetailsManager userDetailsService(DataSource dataSource, PasswordEncoder passwordEncoder) {
+        JdbcUserDetailsManager js = new JdbcUserDetailsManager(dataSource);
+        // first time when you want to creratee users
+//        js.createUser(
+//                User.withUsername("radhe")
+//                        .password(passwordEncoder.encode("radhe"))
+//                        .roles("USER")
+//                        .build());
+//        js.createUser(
+//                User.withUsername("shyam")
+//                        .password(passwordEncoder.encode("radhe"))
+//                        .roles("USER,ADMIN")
+//                        .build());
+        return js;
     }
 }
 
