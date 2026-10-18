@@ -36,9 +36,10 @@ class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(a -> a.anyRequest().authenticated())
-//                .webAuthn(a -> a.allowedOrigins("http://localhost:8080")
-//                        .rpId("localhost")
-//                        .rpName("localhost") )
+                //you need to go to http://localhost:8080/webauthn/register after login first time to create passkey
+                .webAuthn(a -> a.allowedOrigins("http://localhost:8080")
+                        .rpId("localhost")
+                        .rpName("localhost") )
                 .oneTimeTokenLogin(httpSecurityOneTimeTokenLoginConfigurer -> httpSecurityOneTimeTokenLoginConfigurer.tokenGenerationSuccessHandler(
                         (_, response, oneTimeToken) -> {
                             response.getWriter().println("You got a mail on console");
