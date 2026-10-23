@@ -6,3 +6,26 @@ spring:
     url: jdbc:mysql://localhost:3306/security
     username: security
     password: security
+
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          oidc-client:
+            registration:
+              client-id: "spring"
+              client-secret: "{noop}spring"
+              client-authentication-methods:
+                - "client_secret_basic"
+              authorization_grant_types:
+                - "authorization_code"
+#                - "client_credentials"
+                - "refresh_token"
+              redirect_uris:
+                - "http://127.0.0.1:8082/login/oauth2/code/spring"
+              scopes:
+                - "openid"
+                - "profile"
+logging:
+  level:
+    org.springframework: DEBUG

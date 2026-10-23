@@ -19,6 +19,7 @@ import java.security.Principal;
 import java.util.Map;
 
 @SpringBootApplication
+@EnableWebSecurity
 public class AuthApplication {
     static void main(String[] args) {
         SpringApplication.run(AuthApplication.class, args);
@@ -33,6 +34,8 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
+                // check it's working or not using `http://localhost:8080/.well-known/openid-configuration?continue`
+                .oauth2AuthorizationServer(as -> as.oidc(Customizer.withDefaults()))
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(a -> a.anyRequest().authenticated())
